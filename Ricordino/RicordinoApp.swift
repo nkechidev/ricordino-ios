@@ -10,23 +10,27 @@ import SwiftData
 
 @main
 struct RicordinoApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    let modelContainer: ModelContainer
+    let dependencies: AppDependencies
 
+    init() {
+        let schema = Schema([Note.self])
+        let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        let container: ModelContainer
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            container = try ModelContainer(for: schema, configurations: [configuration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
-    }()
+        self.modelContainer = container
+        self.dependencies = AppDependencies(modelContext: container.mainContext)
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NotesListView()
+                .environment(dependencies.repository)
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(modelContainer)
     }
 }
